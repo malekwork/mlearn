@@ -5,9 +5,16 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
+from rest_framework import generics, permissions
+from django.contrib.auth import update_session_auth_hash
+from .models import User, Subscription
+from .serializers import (
+    UserProfileSerializer,
+    UserUpdateSerializer,
+    ChangePasswordSerializer,
+)
 
 otp_storage = {}  # Temporary storage for OTPs
 
@@ -84,3 +91,37 @@ class CheckLoginStatusView(APIView):
     def get(self, request):
         user = request.user
         return Response({"logged_in": True, "mobile": user.mobile, "name": user.name}, status=status.HTTP_200_OK)
+    
+
+class UserProfileView(generics.RetrieveAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+class UserUpdateView(generics.UpdateAPIView):
+    serializer_class = UserUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+    
+    
+class ChangePasswordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            if not user.check_password(serializer.validated_data["old_password"]):
+                return Response({"error": "Old password is incorrect"}, status=400)
+
+            user.set_password(serializer.validated_data["new_password"])
+            user.save()
+            update_session_auth_hash(request, user)
+            return Response({"message": "Password changed successfully"})
+
+        return Response(serializer.errors, status=400)
