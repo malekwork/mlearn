@@ -125,3 +125,25 @@ class ChangePasswordView(APIView):
             return Response({"message": "Password changed successfully"})
 
         return Response(serializer.errors, status=400)
+    
+
+
+class PurchaseSubscriptionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        subscription_id = request.data.get("subscription_id")
+        try:
+            subscription = Subscription.objects.get(id=subscription_id)
+        except Subscription.DoesNotExist:
+            return Response({"error": "Subscription not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        user = request.user
+        user.purchase_subscription(subscription)
+        
+        return Response({
+            "message": "Subscription purchased successfully",
+            "subscription": subscription.name,
+            "expiry_date": user.subscription_expiry
+        }, status=status.HTTP_200_OK)
+
