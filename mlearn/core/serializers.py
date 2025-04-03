@@ -30,8 +30,24 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['id', 'title', 'content', 'image', 'video', 'is_premium', 'category', 'author', 'created_at']
-
         extra_kwargs = {
             'author': {'read_only': True}, 
             'created_at': {'read_only': True}
         }
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+
+        if request and request.user.is_authenticated:
+            user = request.user
+            has_valid_subscription = user.subscription and user.remaining_subscription_days() > 0 and user is not instance.author
+
+            if instance.is_premium and not has_valid_subscription:
+                return {
+                    "id": data["id"],
+                    "title": data["title"],
+                    "image": data["image"]
+                }
+
+        return data
