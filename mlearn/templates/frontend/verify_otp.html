@@ -1,0 +1,19 @@
+
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>احراز هویت</title>
+    {% load static %}
+    <script src="{% static 'auth.js' %}"></script>
+</head>
+<body>
+    <h2>تایید کد</h2>
+    <div id="verifyOTP">
+        <label>کد تایید:</label>
+        <input type="text" id="otp">
+        <button onclick="verifyOTP()">تایید</button>
+    </div>
+</body>
+</html>

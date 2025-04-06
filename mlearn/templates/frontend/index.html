@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحه اصلی</title>
+</head>
+<body>
+
+    <h2>به Mlearn خوش آمدید</h2>
+
+    <p>is_authenticated: {{ is_authenticated }}</p>
+    <p>user: {{ user }}</p>
+
+
+    {% if is_authenticated %}
+        <p>سلام {{ user.name }}!</p>
+        <a href="{% url 'logout' %}"><button>خروج</button></a>
+    {% else %}
+        <a href="{% url 'send-otp' %}"><button>ثبت نام</button></a>
+        <a href="{% url 'login' %}"><button>ورود</button></a>
+    {% endif %}
+
+</body>
+</html>

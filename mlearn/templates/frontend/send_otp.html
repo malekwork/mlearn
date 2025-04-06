@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>احراز هویت</title>
+    {% load static %}
+    <script src="{% static 'auth.js' %}"></script>
+</head>
+<body>
+
+    <h2>ثبت‌نام</h2>
+
+    <div id="step1">
+        <label>شماره موبایل:</label>
+        <input type="text" id="mobile" placeholder="مثلاً: 09123456789">
+        <button onclick="sendOTP()">ارسال کد</button>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>احراز هویت</title>
+    {% load static %}
+    <script src="{% static 'auth.js' %}"></script>
+</head>
+<body>
+  
+    <h2>ثبت‌نام</h2>
+
+    <div id="register">
+        <label>نام:</label>
+        <input type="text" id="name">
+        <label>رمز عبور:</label>
+        <input type="password" id="password">
+        <button onclick="register()">ثبت نام</button>
+    </div>
+
+</body>
+</html>

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'core',
     'mptt',
     'ckeditor',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -53,14 +54,17 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'mlearn.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -72,6 +76,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'mlearn.wsgi.application'
 
@@ -128,6 +133,13 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -142,4 +154,15 @@ AUTHENTICATION_BACKENDS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/login/'
+
+SESSION_COOKIE_AGE = 86400  # 1 day in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+SESSION_COOKIE_SAMESITE = 'None'  # یا 'Lax' یا 'Strict'
+SESSION_COOKIE_SECURE = True  # اگر از HTTPS استفاده می‌کنید
 
