@@ -1,5 +1,3 @@
-console.log("auth.js loaded successfully.");
-
 const API_BASE = "http://localhost:8000/auth/";
 
 let mobileNumber = "";
@@ -70,35 +68,28 @@ function register() {
     });
 }
 
-// ورود
+
 function login() {
+    console.log("login...");
     let loginMobile = document.getElementById("loginMobile").value;
     let loginPassword = document.getElementById("loginPassword").value;
 
-    console.log("Login function is triggered!");  // آیا این چاپ می‌شود؟
-    console.log("Mobile:", loginMobile, "Password:", loginPassword);  // مقدارها را چک کنید
 
     fetch(API_BASE + "login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",  // این خط را اضافه کردیم
-        body: JSON.stringify({ mobile: loginMobile, password: loginPassword })
+        body: JSON.stringify({ "mobile": loginMobile.toString(), "password": loginPassword.toString() })
     })
     .then(response => {
-        console.log("Response received:", response);  // آیا سرور پاسخ می‌دهد؟
         return response.json();
     })
     .then(data => {
-        console.log("Response Data:", data);  // دیتای پاسخ را ببینید
         if (data.message) {
             alert("ورود موفق!");
             window.location.href = "/";
         } else {
             alert("خطا در ورود!");
         }
-    })
-    .catch(error => {
-        console.error("Error:", error);
     });
 }
 
