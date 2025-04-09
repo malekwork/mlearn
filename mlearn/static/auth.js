@@ -71,27 +71,37 @@ function register() {
 
 function login() {
     console.log("login...");
-    let loginMobile = document.getElementById("loginMobile").value;
-    let loginPassword = document.getElementById("loginPassword").value;
 
+    let loginMobile = $("#loginMobile").val();
+    let loginPassword = $("#loginPassword").val();
 
-    fetch(API_BASE + "login/", {
+    let csrfToken = $("input[name='csrfmiddlewaretoken']").val();
+    
+    $.ajax({
+        url: API_BASE + "login/",
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ "mobile": loginMobile.toString(), "password": loginPassword.toString() })
-    })
-    .then(response => {
-        return response.json();
-    })
-    .then(data => {
-        if (data.message) {
-            alert("ورود موفق!");
-            window.location.href = "/";
-        } else {
-            alert("خطا در ورود!");
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken
+        },
+        data: JSON.stringify({
+            "mobile": loginMobile,
+            "password": loginPassword
+        }),
+        success: function(data) {
+            if (data.message) {
+                alert("ورود موفق!");
+                window.location.href = "/";
+            } else {
+                alert("خطا در ورود!");
+            }
+        },
+        error: function(xhr, status, error) {
+            alert("خطا در برقراری ارتباط با سرور!");
         }
     });
 }
+
 
 // function login() {
 //     let loginMobile = document.getElementById("loginMobile").value;
@@ -100,7 +110,7 @@ function login() {
 //     fetch(API_BASE + "login/", {
 //         method: "POST",
 //         headers: { "Content-Type": "application/json" },
-//         credentials: "include",
+        
 //         body: JSON.stringify({ mobile: loginMobile, password: loginPassword })
 //     })
 //     .then(response => response.json())

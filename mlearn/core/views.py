@@ -1,69 +1,148 @@
+from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, serializers
 from accounts.models import Subscription
-from accounts.serializers import SubscriptionSerializer
 from rest_framework import generics
 from .models import Category
-from .serializers import CategorySerializer
 from rest_framework import viewsets, permissions
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Post, Comment
-from .serializers import PostSerializer, CommentSerializer
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from .forms import PostForm, SubscriptionForm
+from django.http import HttpResponseForbidden
+from .models import Category
+from .forms import CategoryForm
+from django.shortcuts import render, get_object_or_404, redirect
+from .forms import CommentForm
+from django.core.paginator import Paginator
+from django.db.models import Q
 
-
-
-class SubscriptionListCreateView(APIView):
-    def get(self, request):
-        subscriptions = Subscription.objects.all()
-        serializer = SubscriptionSerializer(subscriptions, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        serializer = SubscriptionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-class CategoryListCreateView(generics.ListCreateAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-
-
-
-class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+def index_view(request):
+    posts = Post.objects.all().order_by('-created_at')
     
-    def get_serializer_context(self):
-        return {'request': self.request}
+    paginator = Paginator(posts, 6)
+    
+    page_number = request.GET.get('page')
+    
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'is_authenticated': request.user.is_authenticated,
+        'user': request.user,
+        'page_obj': page_obj,
+    }
+    return render(request, 'frontend/index.html', context)
 
 
-class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+def subscription_list(request):
+    subscriptions = Subscription.objects.all()
+    return render(request, "subscriptions/subscription_list.html", {"subscriptions": subscriptions})
 
-    def get_queryset(self):
-        post_id = self.request.query_params.get('post')
-        if post_id:
-            return Comment.objects.filter(post_id=post_id)
-        return Comment.objects.none()
+def subscription_create(request):
+    if not request.user.is_staff:  
+        return HttpResponseForbidden("You do not have permission to create a subscrition.")
+    if request.method == "POST":
+        form = SubscriptionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("subscription_list")
+    else:
+        form = SubscriptionForm()
 
-    def perform_create(self, serializer):
-        user = self.request.user
-        post = serializer.validated_data['post']
+    return render(request, "subscriptions/subscription_form.html", {"form": form})
 
-        if post.is_premium:
-            if not (user.subscription and user.remaining_subscription_days() > 0 and user != post.author):
-                raise serializers.ValidationError("You need a valid subscription to comment on this premium post.")
 
-        serializer.save(author=user)
+def category_list(request):
+    categories = Category.objects.all()
+    return render(request, "categories/category_list.html", {"categories": categories})
+
+def category_create(request):
+    if not request.user.is_staff:  
+        return HttpResponseForbidden("You do not have permission to create a category.")
+    
+    if request.method == "POST":
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("category_list")
+    else:
+        parent_categories = Category.objects.filter()
+        form = CategoryForm()
+
+    return render(request, "categories/category_form.html", {
+        "form": form,
+        "parent_categories": parent_categories 
+    })
+
+def category_posts(request, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    posts = Post.objects.filter(category=category).order_by('-created_at')
+
+    context = {
+        'category': category,
+        'posts': posts,
+    }
+
+    return render(request, 'categories/category_posts.html', context)
+
+
+
+def post_detail(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    comments = post.comments.all()
+
+    if post.is_premium and not request.user.is_authenticated:
+        return redirect("login")
+
+    access = True
+    if post.is_premium:
+        if not ((request.user.subscription and request.user.remaining_subscription_days() > 0) or request.user == post.author):
+            access = False
+
+    related_posts = Post.objects.filter(
+        Q(category=post.category) | Q(category__in=post.category.get_ancestors())
+    ).exclude(id=post.id).order_by('-created_at')[:5]
+
+    context = {
+        'post': post,
+        'comments': comments,
+        'access': access,
+        'related_posts': related_posts,
+    }
+
+    return render(request, "posts/post_detail.html", context)
+
+
+def post_create(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if request.method == "POST":
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('home')
+    else:
+        form = PostForm()
+
+    return render(request, "posts/post_form.html", {"form": form})
+
+def comment_create(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.author = request.user
+            comment.save()
+            return redirect("post_detail", post_id=post.id)
+    else:
+        form = CommentForm()
+
+    return render(request, "posts/comment_form.html", {"form": form, "post": post})
