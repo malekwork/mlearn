@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import send_otp_view, VerifyOTPTemplateView, RegisterTemplateView, LoginView, LogoutView
-from .views import PurchaseSubscriptionView, user_profile, change_password, user_update
+from .views import user_profile, change_password, user_update
 
 urlpatterns = [
     path('send-otp/', send_otp_view, name='send-otp'),
@@ -12,5 +12,4 @@ urlpatterns = [
     path('profile/', user_profile, name='profile'),
     path('update/', user_update, name='update'),
     path('change-password/', change_password, name='change-password'),
-    path('purchase-subscription/', PurchaseSubscriptionView.as_view(), name='purchase-subscription'),
 ]

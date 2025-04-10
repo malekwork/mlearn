@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'mptt',
     'ckeditor',
     'corsheaders',
+    "azbankgateways",
 ]
 
 MIDDLEWARE = [
@@ -157,12 +158,21 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-LOGIN_REDIRECT_URL = '/'
-LOGIN_URL = '/login/'
-
 SESSION_COOKIE_AGE = 86400  # 1 day in seconds
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-SESSION_COOKIE_SAMESITE = 'None'  # یا 'Lax' یا 'Strict'
-SESSION_COOKIE_SECURE = True  # اگر از HTTPS استفاده می‌کنید
+SESSION_COOKIE_SAMESITE = 'None'  
+SESSION_COOKIE_SECURE = True
 
+AZ_IRANIAN_BANK_GATEWAYS = {
+    "IS_SAMPLE_FORM_ENABLE": True,
+    "GATEWAYS": {
+        "IDPAY": {
+            "MERCHANT_CODE": "test",
+            "METHOD": "POST",
+            "X_SANDBOX": 1,
+        },
+    },
+    "DEFAULT": "IDPAY",
+    "CURRENCY": "IRR",
+}

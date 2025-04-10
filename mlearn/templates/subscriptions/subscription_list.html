@@ -19,6 +19,9 @@
                 <th>Name</th>
                 <th>Days</th>
                 <th>Price</th>
+                {% if user.is_authenticated %}
+                    <th>Action</th> 
+                {% endif %}
             </tr>
         </thead>
         <tbody>
@@ -28,10 +31,17 @@
                     <td>{{ subscription.name }}</td>
                     <td>{{ subscription.duration_days }}</td>
                     <td>{{ subscription.price }}</td>
-                        
+                    {% if user.is_authenticated %}
+                        <td>
+                            <a href="{% url 'buy-subscription' subscription.id %}" class="btn btn-sm btn-primary">
+                                خرید
+                            </a>
+                        </td>
+                    {% endif %}
                 </tr>
             {% endfor %}
         </tbody>
+        
     </table>
 
     <div class="text-center">

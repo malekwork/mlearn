@@ -1,7 +1,7 @@
 from django.urls import path, include
-from .views import subscription_create, subscription_list, post_create, category_posts
+from .views import callback_gateway_view, purchase_subscription_view, subscription_create, subscription_list, post_create, category_posts
 from .views import category_create, category_list, post_detail, comment_create
-from rest_framework.routers import DefaultRouter
+from azbankgateways.urls import az_bank_gateways_urls
 
 
 urlpatterns = [
@@ -13,4 +13,7 @@ urlpatterns = [
     path('post/<int:post_id>/', post_detail, name='post_detail'),
     path('post/create/', post_create, name='create_post'),
     path('post/<int:post_id>/comment/', comment_create, name='comment_create'),
+    path("buy-subscription/<int:subscription_id>/", purchase_subscription_view, name="buy-subscription"),
+    path("gateway/callback/", callback_gateway_view, name="callback-gateway"),
+    path("bankgateways/", az_bank_gateways_urls()),
 ]

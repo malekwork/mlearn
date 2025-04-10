@@ -1,19 +1,10 @@
 import random
 from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.hashers import check_password
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication
-from rest_framework import generics, permissions
 from django.contrib.auth import update_session_auth_hash
-from .models import Subscription
 from .forms import ChangePasswordForm, UserUpdateForm
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 
@@ -62,7 +53,6 @@ class VerifyOTPTemplateView(View):
             return render(request, "frontend/verify_otp.html", {"error": "Invalid OTP. Please try again."})
 
     
-
 class RegisterTemplateView(View):
     def get(self, request):
         return render(request, "frontend/register.html")
@@ -91,8 +81,6 @@ class RegisterTemplateView(View):
         return redirect(reverse("login"))
 
 
-
-
 class LoginView(View):
     def get(self, request):
         return render(request, "frontend/login.html")  # نمایش فرم لاگین
@@ -116,7 +104,6 @@ class LoginView(View):
         login(request, user)
         return redirect("home")
 
-    
 
 class LogoutView(View):
     def get(self, request):
@@ -162,23 +149,3 @@ def change_password(request):
         form = ChangePasswordForm(user=request.user)
 
     return render(request, 'profile/change_password.html', {'form': form})
-
-class PurchaseSubscriptionView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        subscription_id = request.data.get("subscription_id")
-        try:
-            subscription = Subscription.objects.get(id=subscription_id)
-        except Subscription.DoesNotExist:
-            return Response({"error": "Subscription not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        user = request.user
-        user.purchase_subscription(subscription)
-        
-        return Response({
-            "message": "Subscription purchased successfully",
-            "subscription": subscription.name,
-            "expiry_date": user.subscription_expiry
-        }, status=status.HTTP_200_OK)
-

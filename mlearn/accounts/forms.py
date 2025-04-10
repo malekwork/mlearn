@@ -4,13 +4,6 @@ from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import get_user_model
 
-class SubscriptionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Subscription
-        fields = ['name', 'price', 'duration_days']
-
-
-
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = get_user_model()
